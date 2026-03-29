@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exhibit B: DeFi Protocol Classification Patterns — Code & Counsel</title>
+<style>
+body { margin: 0; padding: 28px; background: #fff; font-family: Georgia, serif; color: #1A1A1A; max-width: 960px; }
+h1 { font-size: 18px; color: #11232F; margin: 0 0 4px; font-weight: 700; }
+.sub { font-size: 13px; color: #4A4A4A; margin: 0 0 20px; font-style: italic; }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; line-height: 1.5; }
+th { background: #11232F; color: #fff; font-weight: 600; text-align: left; padding: 8px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+td { padding: 8px 10px; border-bottom: 1px solid #D4CFC7; vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+.pattern { font-weight: 600; color: #11232F; }
+.proto { font-style: italic; color: #4A4A4A; }
+.tag-green { display: inline-block; background: #EAF3DE; color: #3B6D11; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 3px; }
+.tag-amber { display: inline-block; background: #FAEEDA; color: #854F0B; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 3px; }
+.tag-red { display: inline-block; background: #FCEBEB; color: #A32D2D; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 3px; }
+.tag-gray { display: inline-block; background: #F1EFE8; color: #5F5E5A; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 3px; }
+.cite { font-size: 11px; color: #888780; font-style: italic; }
+.footer { margin-top: 16px; font-size: 11px; color: #888780; border-top: 1px solid #D4CFC7; padding-top: 10px; }
+.footer a { color: #2E75B6; }
+</style>
+</head>
+<body>
+<h1>Exhibit B: DeFi protocol classification patterns</h1>
+<p class="sub">How representative DeFi protocols map to the SEC/CFTC taxonomy (Release No. 33-11412). Not legal advice — classification is fact-specific.</p>
+<table>
+<thead>
+<tr>
+<th style="width:16%">Pattern</th>
+<th style="width:14%">Protocols</th>
+<th style="width:14%">Likely class.</th>
+<th style="width:42%">Key question under the interpretation</th>
+<th style="width:14%">Release cite</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td class="pattern">Governance tokens<br>(functional protocol,<br>no active fee switch)</td>
+<td class="proto">COMP, JUP, 1INCH</td>
+<td><span class="tag-green">Digital commodity</span></td>
+<td>Likely the cleanest cases. Functional system, exercisable governance utility, no passive yield to holders. Classification strengthened where governance is meaningfully decentralized and no central party controls protocol parameters.</td>
+<td class="cite">§III.A p.14; n.49 ("functional"); n.50 ("decentralized")</td>
+</tr>
+
+<tr>
+<td class="pattern">Governance tokens<br>with latent fee switch</td>
+<td class="proto">UNI, AAVE</td>
+<td><span class="tag-green">Digital commodity</span><br><span class="tag-amber">Watch</span></td>
+<td>Functional systems with exercisable governance. But governance can vote to redirect protocol fees to token holders. If activated, the token arguably acquires "intrinsic economic properties … such as generating a passive yield" — the characteristic the interpretation says digital commodities lack. Does the <em>existence</em> of a governance-controlled revenue distribution mechanism affect classification, even if not yet exercised? AAVE's Safety Module and revenue-funded buyback program ($100M+) add further complexity.</td>
+<td class="cite">p.14 (no "intrinsic economic properties or rights"); p.16 n.50, n.54 ("central party")</td>
+</tr>
+
+<tr>
+<td class="pattern">Vote-escrow models<br>(governance + yield)</td>
+<td class="proto">CRV, BAL</td>
+<td><span class="tag-amber">Harder case</span></td>
+<td>veCRV/veBAL locking creates enhanced governance power <em>and</em> yield from protocol fees. The yield component is harder to characterize as purely "supply and demand dynamics" — it resembles a return derived from the protocol's economic activity, directed by governance. Whether the DAO's collective governance decisions constitute the "efforts of others" under Howey is itself an open question the interpretation doesn't resolve.</td>
+<td class="cite">p.14–16; §IV.A p.24–27 (representations framework)</td>
+</tr>
+
+<tr>
+<td class="pattern">Lending protocols<br>(multi-entity structure)</td>
+<td class="proto">MORPHO, AAVE, COMP</td>
+<td><span class="tag-green">Digital commodity</span><br><span class="tag-amber">MORPHO: harder</span></td>
+<td>COMP is structurally clean — governance token, functional protocol, progressive team step-back. MORPHO is harder: immutable protocol (strong), but "owner role" controls fee/config levers, 27.5% allocated to strategic partners on vesting (through 2028), Apollo deal (90M tokens/48 months). Does the owner role = "central party" (n.54)? Do unvested strategic allocations = unseparated investment contracts? AAVE: see fee switch row above.</td>
+<td class="cite">p.14 n.49; p.16 n.50, n.54; §IV.B p.28–31 (separation)</td>
+</tr>
+
+<tr>
+<td class="pattern">Yield infrastructure<br>(managed strategies)</td>
+<td class="proto">Yearn, Mellow, Pendle</td>
+<td><span class="tag-amber">Fact-intensive</span></td>
+<td>Yearn vault strategists design and manage yield strategies — choosing where to deploy capital, optimizing returns. Are strategist efforts "essential managerial efforts"? Pendle splits yield-bearing assets into PT and YT — YT holders are explicitly buying a right to future yield, which sounds like the "rights to future income" digital commodities are defined as lacking. Mellow as a restaking/vault layer raises similar questions about curated strategy selection.</td>
+<td class="cite">p.14 ("no intrinsic economic properties … such as generating a passive yield"); §IV.A p.24–27</td>
+</tr>
+
+<tr>
+<td class="pattern">DEX aggregators &<br>routing infrastructure</td>
+<td class="proto">Jupiter, 1inch, CoW, Kyberswap, DefiLlama, Jumper</td>
+<td><span class="tag-green">Digital commodity</span></td>
+<td>Token utility is typically governance over routing parameters, fee structures, or solver incentives on a functional system. Where the token has exercisable governance utility on a live aggregation protocol, digital commodity classification is likely. Analysis depends on what governance actually controls and whether any entity has disproportionate control over protocol operation.</td>
+<td class="cite">§III.A p.14; n.49</td>
+</tr>
+
+<tr>
+<td class="pattern">Perpetuals &<br>derivatives DEXs</td>
+<td class="proto">Hyperliquid</td>
+<td><span class="tag-green">HYPE: digital commodity</span><br><span class="tag-amber">HLP vault: watch</span></td>
+<td>HYPE is the native gas token for a standalone L1 running a perpetuals DEX — functional system, exercisable utility. Likely digital commodity. But the HLP vault, which provides market-making liquidity and generates returns from trading activity, raises a separate question: are vault depositors investing in a common enterprise with an expectation of profits from the vault's market-making activities?</td>
+<td class="cite">§III.A p.14; §IV.A p.24–27</td>
+</tr>
+
+<tr>
+<td class="pattern">Wallets &<br>messaging layers</td>
+<td class="proto">Phantom, Rabby, LayerZero (ZRO)</td>
+<td><span class="tag-gray">Varies</span></td>
+<td>Phantom and Rabby are wallets without native tokens — not directly implicated by the taxonomy. ZRO (LayerZero) is a messaging protocol token used as payment for cross-chain verification — if exercisable on a live system, likely digital commodity. The LayerZero Foundation's concentrated development role raises the central party question.</td>
+<td class="cite">p.14 n.49; p.16 n.50, n.54</td>
+</tr>
+
+<tr>
+<td class="pattern">Privacy infrastructure</td>
+<td class="proto">Railgun, Secret, Aztec</td>
+<td><span class="tag-green">Digital commodity</span><br><span class="tag-red">Non-securities risk</span></td>
+<td>Governance tokens on functional privacy systems likely qualify as digital commodities under the taxonomy. But the regulatory surface extends well beyond securities law — OFAC compliance, BSA/AML, the interaction between privacy-preserving technology and financial surveillance requirements. The interpretation's framework doesn't address these. Classification as a non-security doesn't resolve the harder regulatory questions these protocols face.</td>
+<td class="cite">§III.A p.14; Release §VIII (other legal regimes preserved)</td>
+</tr>
+
+<tr>
+<td class="pattern">DeFi-native<br>stablecoins</td>
+<td class="proto">GHO (Aave), USDS/DAI (Sky/Maker)</td>
+<td><span class="tag-amber">Gray zone</span></td>
+<td>Neither GENIUS Act safe harbor (wrong issuer structure) nor Covered Stablecoin safe harbor (crypto collateral, DAO governance) applies. USDS yield feature (Sky Savings Rate ~4.5% APY) directly conflicts with GENIUS Act prohibition on paying yield to stablecoin holders. Yield-bearing wrappers (sUSDS, sDAI) likely don't qualify for the wrapping safe harbor because they "offer a return." These fall into the residual "may be a security depending on facts" category — the interpretation provides no specific guidance for DeFi-native stablecoins.</td>
+<td class="cite">§III.D p.21–23; GENIUS Act §4(a)(11); §VI p.54 (wrapping)</td>
+</tr>
+
+</tbody>
+</table>
+<div class="footer">
+Release: <a href="https://www.sec.gov/files/rules/interp/2026/33-11412.pdf">sec.gov/files/rules/interp/2026/33-11412.pdf</a> · CLARITY Act: <a href="https://www.congress.gov/bill/119th-congress/house-bill/3633/text">H.R. 3633</a> · GENIUS Act: <a href="https://www.congress.gov/bill/119th-congress/senate-bill/394">S. 394</a><br>
+Irina Marinescu · Code & Counsel · codeandcounsel.substack.com
+</div>
+</body>
+</html>
