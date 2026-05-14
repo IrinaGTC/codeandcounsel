@@ -3,734 +3,557 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Token Classification Decision Tree — Code &amp; Counsel</title>
+<title>Token Classification Decision Tree (Static) — Code &amp; Counsel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap">
 <style>
 :root {
-  --bg: #F9F8F5;
-  --surface: #FFFFFF;
-  --text: #1A1A18;
-  --text-muted: #666660;
+  --bg:     #F9F8F5;
+  --surface:#FFFFFF;
+  --text:   #1A1A18;
+  --muted:  #666660;
   --accent: #2C4A3E;
-  --accent-light: #E8F0EC;
-  --rule: #D8D6CE;
-  --shadow: 0 1px 8px rgba(0,0,0,0.07);
-
-  --c-security:      #7A1818;
-  --c-security-bg:   #FDF3F3;
-  --c-stablecoin:    #3E2A72;
-  --c-stablecoin-bg: #F5F3FC;
-  --c-commodity:     #1C4535;
-  --c-commodity-bg:  #F1F8F4;
-  --c-collectible:   #6E3518;
-  --c-collectible-bg:#FDF4EF;
-  --c-tool:          #183860;
-  --c-tool-bg:       #F1F6FC;
-  --c-further:       #4E3A00;
-  --c-further-bg:    #FDF8EC;
-  --c-hybrid:        #383838;
-  --c-hybrid-bg:     #F4F4F2;
+  --rule:   #D8D6CE;
 }
-
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
 
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 15px;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-}
+.header{border-bottom:2px solid var(--accent);padding:44px 52px 32px;max-width:1060px;margin:0 auto;}
+.header-eyebrow{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:14px;}
+h1{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:600;line-height:1.1;margin-bottom:8px;}
+.header-sub{font-size:13px;color:var(--muted);font-weight:300;}
 
-/* ── Header ─────────────────────────────────────────── */
-.header {
-  border-bottom: 2px solid var(--accent);
-  padding: 44px 52px 32px;
-  max-width: 860px;
-  margin: 0 auto;
-}
-.header-eyebrow {
-  font-size: 10.5px;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  color: var(--accent);
-  font-weight: 500;
-  margin-bottom: 14px;
-}
-h1 {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 38px;
-  font-weight: 600;
-  color: var(--text);
-  line-height: 1.1;
-  margin-bottom: 8px;
-}
-.header-sub {
-  font-size: 13px;
-  color: var(--text-muted);
-  font-weight: 300;
-}
+.container{max-width:1060px;margin:0 auto;padding:40px 52px 80px;}
 
-/* ── Main container ──────────────────────────────────── */
-.container {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 44px 52px 88px;
+/* tree scroll wrapper */
+.tree-wrap{
+  background:var(--surface);
+  border:1px solid var(--rule);
+  box-shadow:0 1px 10px rgba(0,0,0,0.07);
+  overflow-x:auto;
+  margin-bottom:52px;
 }
+.tree-wrap svg{display:block;min-width:720px;}
 
-/* ── Start screen ────────────────────────────────────── */
-#start-screen {
-  padding: 52px 0 12px;
-}
-.start-desc {
-  font-size: 14.5px;
-  line-height: 1.85;
-  color: var(--text-muted);
-  max-width: 520px;
-  margin-bottom: 36px;
-}
-.btn-start {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 19px;
-  font-weight: 600;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  padding: 15px 48px;
-  cursor: pointer;
-  letter-spacing: .02em;
-  transition: background .15s;
-}
-.btn-start:hover { background: #1f3629; }
+/* SVG font classes — injected into <style> inside SVG */
 
-/* ── Breadcrumb ──────────────────────────────────────── */
-.breadcrumb {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  min-height: 26px;
-  margin-bottom: 28px;
+/* Guide section */
+.guide-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:22px;font-weight:600;
+  color:var(--accent);margin-bottom:24px;
 }
-.bc-step {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  color: var(--text-muted);
+.guide-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:16px;
+  margin-bottom:48px;
 }
-.bc-ans {
-  font-size: 10.5px;
-  font-weight: 500;
-  padding: 2px 7px;
-  border-radius: 2px;
-  letter-spacing: .05em;
+.guide-card{
+  border:1px solid var(--rule);
+  padding:18px 20px;
+  background:var(--surface);
 }
-.bc-ans.yes { background: var(--accent-light); color: var(--accent); }
-.bc-ans.no  { background: #EEEEE9;             color: #555550; }
-.bc-arrow   { color: #BBBBB5; font-size: 11px; }
+.gc-badge{
+  display:inline-block;
+  font-size:9.5px;font-weight:500;
+  letter-spacing:.11em;text-transform:uppercase;
+  padding:3px 8px;margin-bottom:10px;
+}
+.gc-name{
+  font-family:'Cormorant Garamond',serif;
+  font-size:18px;font-weight:600;
+  margin-bottom:5px;line-height:1.15;
+}
+.gc-verdict{
+  font-size:10px;font-weight:500;letter-spacing:.1em;
+  text-transform:uppercase;margin-bottom:10px;
+}
+.gc-body{font-size:12.5px;line-height:1.65;color:#3A3A36;}
+.gc-cite{font-size:11px;color:var(--muted);font-style:italic;margin-top:8px;}
 
-/* ── Question card ───────────────────────────────────── */
-.question-card {
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-top: 3px solid var(--accent);
-  padding: 38px 44px;
-  box-shadow: var(--shadow);
-  animation: fadein .22s ease-out;
-}
-@keyframes fadein {
-  from { opacity:0; transform:translateY(6px); }
-  to   { opacity:1; transform:translateY(0); }
-}
-.q-num {
-  font-size: 10.5px;
-  letter-spacing: .13em;
-  text-transform: uppercase;
-  color: var(--accent);
-  font-weight: 500;
-  margin-bottom: 16px;
-}
-.q-text {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 22px;
-  font-weight: 500;
-  line-height: 1.42;
-  color: var(--text);
-  margin-bottom: 10px;
-}
-.q-cite {
-  font-size: 11.5px;
-  color: var(--text-muted);
-  font-style: italic;
-  margin-bottom: 20px;
-  border-left: 2px solid var(--rule);
-  padding-left: 10px;
-  line-height: 1.55;
-}
-.q-hint {
-  font-size: 13px;
-  color: var(--text-muted);
-  line-height: 1.7;
-  background: #F5F4EF;
-  padding: 13px 17px;
-  margin-bottom: 30px;
-}
-.btn-row { display: flex; gap: 12px; }
-.btn {
-  padding: 11px 30px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13.5px;
-  font-weight: 500;
-  letter-spacing: .04em;
-  border: none;
-  cursor: pointer;
-  transition: background .14s, color .14s;
-}
-.btn-yes { background: var(--accent); color: #fff; }
-.btn-yes:hover { background: #1f3629; }
-.btn-no  { background: transparent; color: var(--text); border: 1px solid var(--rule); }
-.btn-no:hover  { background: #EEEEE9; }
+/* category colors */
+.cat-sec   {border-top:3px solid #7A1818;}  .cat-sec   .gc-badge{background:#7A1818;color:#fff;} .cat-sec   .gc-name{color:#7A1818;} .cat-sec   .gc-verdict{color:#7A1818;}
+.cat-stab  {border-top:3px solid #3E2A72;}  .cat-stab  .gc-badge{background:#3E2A72;color:#fff;} .cat-stab  .gc-name{color:#3E2A72;} .cat-stab  .gc-verdict{color:#3E2A72;}
+.cat-furt  {border-top:3px solid #5A3F00;}  .cat-furt  .gc-badge{background:#5A3F00;color:#fff;} .cat-furt  .gc-name{color:#5A3F00;} .cat-furt  .gc-verdict{color:#5A3F00;}
+.cat-comm  {border-top:3px solid #1C4535;}  .cat-comm  .gc-badge{background:#1C4535;color:#fff;} .cat-comm  .gc-name{color:#1C4535;} .cat-comm  .gc-verdict{color:#1C4535;}
+.cat-maysec{border-top:3px solid #B03030;}  .cat-maysec.gc-badge{background:#B03030;color:#fff;} .cat-maysec .gc-name{color:#B03030;} .cat-maysec .gc-verdict{color:#B03030;}
+.cat-coll  {border-top:3px solid #6E3518;}  .cat-coll  .gc-badge{background:#6E3518;color:#fff;} .cat-coll  .gc-name{color:#6E3518;} .cat-coll  .gc-verdict{color:#6E3518;}
+.cat-tool  {border-top:3px solid #183860;}  .cat-tool  .gc-badge{background:#183860;color:#fff;} .cat-tool  .gc-name{color:#183860;} .cat-tool  .gc-verdict{color:#183860;}
+.cat-hyb   {border-top:3px solid #383838;}  .cat-hyb   .gc-badge{background:#383838;color:#fff;} .cat-hyb   .gc-name{color:#383838;} .cat-hyb   .gc-verdict{color:#383838;}
 
-/* ── Outcome card ────────────────────────────────────── */
-.outcome-card {
-  border: 1px solid var(--rule);
-  padding: 38px 44px;
-  box-shadow: var(--shadow);
-  animation: fadein .25s ease-out;
+/* IC overlay */
+.ic-box{
+  border-top:1px solid var(--rule);
+  padding-top:28px;margin-bottom:52px;
 }
-.o-badge {
-  display: inline-block;
-  font-size: 10.5px;
-  letter-spacing: .13em;
-  text-transform: uppercase;
-  font-weight: 500;
-  padding: 4px 10px;
-  margin-bottom: 18px;
+.ic-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:20px;font-weight:600;color:var(--accent);
+  margin-bottom:12px;
 }
-.o-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 34px;
-  font-weight: 600;
-  margin-bottom: 6px;
-  line-height: 1.05;
-}
-.o-verdict {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  margin-bottom: 10px;
-}
-.o-cite {
-  font-size: 12px;
-  color: var(--text-muted);
-  font-style: italic;
-  margin-bottom: 24px;
-  border-left: 2px solid var(--rule);
-  padding-left: 10px;
-  line-height: 1.55;
-}
-.o-notes {
-  list-style: none;
-  margin-bottom: 28px;
-}
-.o-notes li {
-  font-size: 13.5px;
-  line-height: 1.72;
-  color: #333330;
-  padding: 9px 0 9px 20px;
-  border-bottom: 1px solid var(--rule);
-  position: relative;
-}
-.o-notes li::before {
-  content: '—';
-  position: absolute;
-  left: 0;
-  color: #BBBBAA;
-}
-.o-notes li:last-child { border-bottom: none; }
+.ic-body{font-size:13.5px;line-height:1.8;color:#3A3A36;max-width:700px;}
 
-/* Stablecoin 3-tier grid */
-.sc-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 13px;
-  margin-bottom: 26px;
-}
-.sc-tier {
-  border: 1px solid var(--rule);
-  padding: 17px 16px;
-  background: var(--surface);
-}
-.sc-tier-label {
-  font-size: 10px;
-  letter-spacing: .13em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  font-weight: 500;
-  margin-bottom: 6px;
-}
-.sc-tier-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 5px;
-  line-height: 1.2;
-}
-.sc-status {
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: .09em;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-.sc-status.green { color: var(--c-commodity); }
-.sc-status.amber { color: var(--c-further); }
-.sc-desc {
-  font-size: 12px;
-  color: var(--text-muted);
-  line-height: 1.6;
-}
+/* footer */
+.footer{border-top:1px solid var(--rule);padding-top:22px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;line-height:1.75;}
+.footer a{color:var(--accent);text-decoration:none;}
+.footer a:hover{text-decoration:underline;}
 
-/* Outcome color themes */
-.t-security   { background:var(--c-security-bg);   border-top:4px solid var(--c-security);   }
-.t-security   .o-badge  { background:var(--c-security);   color:#fff; }
-.t-security   .o-title  { color:var(--c-security);  }
-.t-security   .o-verdict{ color:var(--c-security);  }
-
-.t-stablecoin { background:var(--c-stablecoin-bg); border-top:4px solid var(--c-stablecoin); }
-.t-stablecoin .o-badge  { background:var(--c-stablecoin); color:#fff; }
-.t-stablecoin .o-title  { color:var(--c-stablecoin); }
-.t-stablecoin .o-verdict{ color:var(--c-stablecoin); }
-
-.t-commodity  { background:var(--c-commodity-bg);  border-top:4px solid var(--c-commodity);  }
-.t-commodity  .o-badge  { background:var(--c-commodity);  color:#fff; }
-.t-commodity  .o-title  { color:var(--c-commodity); }
-.t-commodity  .o-verdict{ color:var(--c-commodity); }
-
-.t-collectible{ background:var(--c-collectible-bg);border-top:4px solid var(--c-collectible);}
-.t-collectible.o-badge  { background:var(--c-collectible);color:#fff; }
-.t-collectible .o-badge { background:var(--c-collectible);color:#fff; }
-.t-collectible .o-title { color:var(--c-collectible);}
-.t-collectible .o-verdict{color:var(--c-collectible);}
-
-.t-tool       { background:var(--c-tool-bg);       border-top:4px solid var(--c-tool);       }
-.t-tool       .o-badge  { background:var(--c-tool);       color:#fff; }
-.t-tool       .o-title  { color:var(--c-tool);      }
-.t-tool       .o-verdict{ color:var(--c-tool);      }
-
-.t-further    { background:var(--c-further-bg);    border-top:4px solid var(--c-further);    }
-.t-further    .o-badge  { background:var(--c-further);    color:#fff; }
-.t-further    .o-title  { color:var(--c-further);   }
-.t-further    .o-verdict{ color:var(--c-further);   }
-
-.t-maysec     { background:var(--c-security-bg);   border-top:4px solid #B03030;             }
-.t-maysec     .o-badge  { background:#B03030;             color:#fff; }
-.t-maysec     .o-title  { color:#B03030;            }
-.t-maysec     .o-verdict{ color:#B03030;            }
-
-.t-hybrid     { background:var(--c-hybrid-bg);     border-top:4px solid var(--c-hybrid);     }
-.t-hybrid     .o-badge  { background:var(--c-hybrid);     color:#fff; }
-.t-hybrid     .o-title  { color:var(--c-hybrid);    }
-.t-hybrid     .o-verdict{ color:var(--c-hybrid);    }
-
-/* Reset link */
-.btn-reset {
-  font-size: 13px;
-  color: var(--text-muted);
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-decoration: underline;
-  font-family: 'DM Sans', sans-serif;
-  padding: 0;
-  display: inline-block;
-  margin-top: 24px;
-}
-.btn-reset:hover { color: var(--accent); }
-
-/* Investment contract overlay */
-.ic-overlay {
-  margin-top: 52px;
-  border-top: 1px solid var(--rule);
-  padding-top: 30px;
-  display: none;
-}
-.ic-overlay-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--accent);
-  margin-bottom: 14px;
-}
-.ic-overlay-body {
-  font-size: 13.5px;
-  line-height: 1.8;
-  color: #3A3A36;
-}
-.ic-overlay-body strong { font-weight: 500; }
-.ic-overlay-body em { font-style: italic; }
-
-/* Footer */
-.footer {
-  margin-top: 68px;
-  border-top: 1px solid var(--rule);
-  padding-top: 22px;
-  font-size: 12px;
-  color: var(--text-muted);
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 10px;
-  line-height: 1.7;
-}
-.footer a { color: var(--accent); text-decoration: none; }
-.footer a:hover { text-decoration: underline; }
-
-@media (max-width: 640px) {
-  .header    { padding: 28px 24px 20px; }
-  .container { padding: 30px 24px 60px; }
-  h1         { font-size: 28px; }
-  .q-text    { font-size: 19px; }
-  .sc-grid   { grid-template-columns: 1fr; }
-  .o-title   { font-size: 26px; }
-  .question-card, .outcome-card { padding: 26px 22px; }
+@media(max-width:640px){
+  .header{padding:28px 20px 18px;}
+  .container{padding:28px 16px 52px;}
+  h1{font-size:26px;}
 }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="header-eyebrow">Exhibit A &nbsp;·&nbsp; Code &amp; Counsel</div>
+  <div class="header-eyebrow">Exhibit A (Static) &nbsp;&middot;&nbsp; Code &amp; Counsel</div>
   <h1>Token Classification Decision Tree</h1>
-  <div class="header-sub">Classification under SEC/CFTC Release Nos. 33-11412 &amp; 34-105020 (Mar. 17, 2026) &nbsp;·&nbsp; Revised</div>
+  <div class="header-sub">Classification under SEC/CFTC Release Nos. 33-11412 &amp; 34-105020 (Mar. 17, 2026) &nbsp;&middot;&nbsp; Read the classification guide below for full outcome descriptions.</div>
 </div>
 
 <div class="container">
 
-  <div id="start-screen">
-    <p class="start-desc">Step through six sequential questions to identify where a crypto asset falls within the SEC/CFTC five-category taxonomy. Questions are ordered by analytic priority per the release. Not legal advice — classification is fact-specific and requires counsel.</p>
-    <button class="btn-start" onclick="startTree()">Begin classification &thinsp;&rarr;</button>
-  </div>
+  <div class="tree-wrap">
+<!-- ═══════════════════════════════════════════════════════════
+     SVG DECISION TREE
+     ViewBox: 1000 × 1140
+     ─────────────────────────────────────────────────────────
+     Spine questions (260×72): cx=185
+       Q1 cy=90  · Q2 cy=255  · Q3 cy=445  · Q4 cy=720  · Q5 cy=920
+     Sub-questions (240×72): cx=490
+       Q3b cy=445 · Q4b cy=720
+     Outcomes (200×52): cx=810
+       DSec=90 · Stab=255 · Furth=350 · DComm=540
+       MaySec=630 · DColl=810 · DTool=920
+     Hybrid (260×52 on spine): cy=1075
+═══════════════════════════════════════════════════════════ -->
+<svg viewBox="0 0 1000 1140" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;font-family:'DM Sans',sans-serif;">
 
-  <div id="tree" style="display:none;">
-    <div class="breadcrumb" id="breadcrumb"></div>
-    <div id="step-container"></div>
-    <div class="ic-overlay" id="ic-overlay">
-      <div class="ic-overlay-title">Investment contract overlay — applies to all non-security categories</div>
-      <div class="ic-overlay-body">
-        Any non-security crypto asset can be offered and sold <em>subject to an investment contract</em> — which is a security — if the issuer induces an investment of money with representations or promises of essential managerial efforts from which purchasers would <em>reasonably</em> expect to profit. <strong>The token is not the security; the contract, transaction, or scheme is.</strong> The fact that a non-security token is subject to an investment contract does not transform the token itself into a security. §IV.A, p.24–27.
-        <br><br>
-        Secondary market transactions in a token remain securities transactions only for so long as purchasers would <em>reasonably expect</em> the issuer's representations or promises to remain connected to the token. This is an objective, facts-and-circumstances inquiry — not an automatic status that attaches to all secondary sales. The token separates from the investment contract upon: (1) fulfillment of the issuer's representations or promises; (2) public abandonment; or (3) a sufficiently long period of inaction that investors would no longer reasonably expect performance. §IV.B, p.28–31.
-        <br><br>
-        The offer and sale of an investment contract must be registered under the Securities Act or conducted pursuant to an available exemption, regardless of whether the underlying token later separates. Antifraud liability survives separation.
-      </div>
+<defs>
+  <!-- Yes arrowhead (green) -->
+  <marker id="ah-y" viewBox="0 0 10 8" refX="9" refY="4"
+          markerWidth="7" markerHeight="7" orient="auto">
+    <path d="M 0 0 L 10 4 L 0 8 z" fill="#2C4A3E"/>
+  </marker>
+  <!-- No arrowhead (gray) -->
+  <marker id="ah-n" viewBox="0 0 10 8" refX="9" refY="4"
+          markerWidth="7" markerHeight="7" orient="auto">
+    <path d="M 0 0 L 10 4 L 0 8 z" fill="#888880"/>
+  </marker>
+  <!-- Sub-branch arrowhead (gray) -->
+  <marker id="ah-s" viewBox="0 0 10 8" refX="9" refY="4"
+          markerWidth="7" markerHeight="7" orient="auto">
+    <path d="M 0 0 L 10 4 L 0 8 z" fill="#888880"/>
+  </marker>
+</defs>
+
+<!-- ── Background ─────────────────────────────────────── -->
+<rect width="1000" height="1140" fill="#F9F8F5"/>
+
+<!-- ── START marker ───────────────────────────────────── -->
+<text x="185" y="28" text-anchor="middle" font-size="10"
+      fill="#2C4A3E" font-weight="500" letter-spacing="0.12em"
+      font-family="'DM Sans',sans-serif">START ↓</text>
+<line x1="185" y1="33" x2="185" y2="54"
+      stroke="#2C4A3E" stroke-width="1.5" marker-end="url(#ah-y)"/>
+
+<!-- ══════════════════════════════════════════════════════
+     ARROWS — rendered before boxes so boxes sit on top
+══════════════════════════════════════════════════════ -->
+
+<!-- ── Spine No arrows (vertical, gray) ──────────────── -->
+<path d="M 185 126 L 185 219" stroke="#888880" stroke-width="1.5"
+      fill="none" marker-end="url(#ah-n)"/>
+<path d="M 185 291 L 185 409" stroke="#888880" stroke-width="1.5"
+      fill="none" marker-end="url(#ah-n)"/>
+<path d="M 185 481 L 185 684" stroke="#888880" stroke-width="1.5"
+      fill="none" marker-end="url(#ah-n)"/>
+<path d="M 185 756 L 185 884" stroke="#888880" stroke-width="1.5"
+      fill="none" marker-end="url(#ah-n)"/>
+<path d="M 185 956 L 185 1049" stroke="#888880" stroke-width="1.5"
+      fill="none" marker-end="url(#ah-n)"/>
+
+<!-- ── Yes arrows to outcomes (horizontal, green) ──── -->
+<!-- Q1 → Digital Security -->
+<path d="M 315 90 L 710 90" stroke="#2C4A3E" stroke-width="1.5"
+      fill="none" marker-end="url(#ah-y)"/>
+<!-- Q2 → Stablecoin -->
+<path d="M 315 255 L 710 255" stroke="#2C4A3E" stroke-width="1.5"
+      fill="none" marker-end="url(#ah-y)"/>
+<!-- Q3 → Q3b (short, to sub-question) -->
+<path d="M 315 445 L 370 445" stroke="#2C4A3E" stroke-width="1.5"
+      fill="none" marker-end="url(#ah-y)"/>
+<!-- Q4 → Q4b (short, to sub-question) -->
+<path d="M 315 720 L 370 720" stroke="#2C4A3E" stroke-width="1.5"
+      fill="none" marker-end="url(#ah-y)"/>
+<!-- Q5 → Digital Tool -->
+<path d="M 315 920 L 710 920" stroke="#2C4A3E" stroke-width="1.5"
+      fill="none" marker-end="url(#ah-y)"/>
+
+<!-- ── Q3b arrows (from top / bottom to right column) ── -->
+<!-- Q3b: Yes (yield present) → Further Analysis (up-then-right) -->
+<path d="M 490 409 L 490 350 L 710 350" stroke="#2C4A3E" stroke-width="1.5"
+      fill="none" stroke-dasharray="3 2" marker-end="url(#ah-y)"/>
+<!-- Q3b: No (no yield) → Digital Commodity (down-then-right) -->
+<path d="M 490 481 L 490 540 L 710 540" stroke="#2C4A3E" stroke-width="1.5"
+      fill="none" marker-end="url(#ah-y)"/>
+
+<!-- ── Q4b arrows (from top / bottom to right column) ── -->
+<!-- Q4b: Yes (fractionalized) → May Be Security (up-then-right) -->
+<path d="M 490 684 L 490 630 L 710 630" stroke="#2C4A3E" stroke-width="1.5"
+      fill="none" stroke-dasharray="3 2" marker-end="url(#ah-y)"/>
+<!-- Q4b: No (not fractionalized) → Digital Collectible (down-then-right) -->
+<path d="M 490 756 L 490 810 L 710 810" stroke="#2C4A3E" stroke-width="1.5"
+      fill="none" marker-end="url(#ah-y)"/>
+
+<!-- ══════════════════════════════════════════════════════
+     YES / NO LABELS ON ARROWS
+══════════════════════════════════════════════════════ -->
+
+<!-- No labels (gray) on spine -->
+<text x="198" y="178" font-size="10" fill="#888880" font-weight="500"
+      font-family="'DM Sans',sans-serif">No</text>
+<text x="198" y="353" font-size="10" fill="#888880" font-weight="500"
+      font-family="'DM Sans',sans-serif">No</text>
+<text x="198" y="586" font-size="10" fill="#888880" font-weight="500"
+      font-family="'DM Sans',sans-serif">No</text>
+<text x="198" y="822" font-size="10" fill="#888880" font-weight="500"
+      font-family="'DM Sans',sans-serif">No</text>
+<text x="198" y="1006" font-size="10" fill="#888880" font-weight="500"
+      font-family="'DM Sans',sans-serif">No</text>
+
+<!-- Yes labels (green) on horizontal arrows -->
+<text x="338" y="84" font-size="10" fill="#2C4A3E" font-weight="500"
+      font-family="'DM Sans',sans-serif">Yes</text>
+<text x="338" y="249" font-size="10" fill="#2C4A3E" font-weight="500"
+      font-family="'DM Sans',sans-serif">Yes</text>
+<text x="327" y="438" font-size="10" fill="#2C4A3E" font-weight="500"
+      font-family="'DM Sans',sans-serif">Yes →</text>
+<text x="327" y="713" font-size="10" fill="#2C4A3E" font-weight="500"
+      font-family="'DM Sans',sans-serif">Yes →</text>
+<text x="338" y="914" font-size="10" fill="#2C4A3E" font-weight="500"
+      font-family="'DM Sans',sans-serif">Yes</text>
+
+<!-- Q3b Yes/No labels -->
+<text x="478" y="401" font-size="9.5" fill="#2C4A3E" font-weight="500"
+      text-anchor="end" font-family="'DM Sans',sans-serif">Yes ↑</text>
+<text x="478" y="490" font-size="9.5" fill="#2C4A3E" font-weight="500"
+      text-anchor="end" font-family="'DM Sans',sans-serif">No ↓</text>
+
+<!-- Q4b Yes/No labels -->
+<text x="478" y="676" font-size="9.5" fill="#2C4A3E" font-weight="500"
+      text-anchor="end" font-family="'DM Sans',sans-serif">Yes ↑</text>
+<text x="478" y="764" font-size="9.5" fill="#2C4A3E" font-weight="500"
+      text-anchor="end" font-family="'DM Sans',sans-serif">No ↓</text>
+
+<!-- ══════════════════════════════════════════════════════
+     QUESTION BOXES (spine, 260×72)
+══════════════════════════════════════════════════════ -->
+
+<!-- Q1 -->
+<rect x="55" y="54" width="260" height="72" rx="3"
+      fill="white" stroke="#2C4A3E" stroke-width="2"/>
+<text x="185" y="70" text-anchor="middle" font-size="8.5"
+      fill="#2C4A3E" font-weight="500" letter-spacing="0.14em"
+      font-family="'DM Sans',sans-serif">Q1</text>
+<text x="185" y="84" text-anchor="middle" font-size="11"
+      fill="#1A1A18" font-family="'DM Sans',sans-serif">Enumerated financial instrument</text>
+<text x="185" y="98" text-anchor="middle" font-size="11"
+      fill="#1A1A18" font-family="'DM Sans',sans-serif">onchain? (stock, bond, note…)</text>
+<text x="185" y="116" text-anchor="middle" font-size="9"
+      fill="#888880" font-style="italic" font-family="'DM Sans',sans-serif">15 U.S.C. §77b(a)(1) · §III.E p.23</text>
+
+<!-- Q2 -->
+<rect x="55" y="219" width="260" height="72" rx="3"
+      fill="white" stroke="#2C4A3E" stroke-width="2"/>
+<text x="185" y="235" text-anchor="middle" font-size="8.5"
+      fill="#2C4A3E" font-weight="500" letter-spacing="0.14em"
+      font-family="'DM Sans',sans-serif">Q2</text>
+<text x="185" y="249" text-anchor="middle" font-size="11"
+      fill="#1A1A18" font-family="'DM Sans',sans-serif">Designed to maintain stable</text>
+<text x="185" y="263" text-anchor="middle" font-size="11"
+      fill="#1A1A18" font-family="'DM Sans',sans-serif">value vs. reference asset?</text>
+<text x="185" y="281" text-anchor="middle" font-size="9"
+      fill="#888880" font-style="italic" font-family="'DM Sans',sans-serif">§III.D p.21–23 · GENIUS Act §17</text>
+
+<!-- Q3 -->
+<rect x="55" y="409" width="260" height="72" rx="3"
+      fill="white" stroke="#2C4A3E" stroke-width="2"/>
+<text x="185" y="425" text-anchor="middle" font-size="8.5"
+      fill="#2C4A3E" font-weight="500" letter-spacing="0.14em"
+      font-family="'DM Sans',sans-serif">Q3</text>
+<text x="185" y="439" text-anchor="middle" font-size="11"
+      fill="#1A1A18" font-family="'DM Sans',sans-serif">Native to functional system</text>
+<text x="185" y="453" text-anchor="middle" font-size="11"
+      fill="#1A1A18" font-family="'DM Sans',sans-serif">with exercisable utility?</text>
+<text x="185" y="471" text-anchor="middle" font-size="9"
+      fill="#888880" font-style="italic" font-family="'DM Sans',sans-serif">§III.A p.14 · n.49 (functional) · n.1 (native)</text>
+
+<!-- Q4 -->
+<rect x="55" y="684" width="260" height="72" rx="3"
+      fill="white" stroke="#2C4A3E" stroke-width="2"/>
+<text x="185" y="700" text-anchor="middle" font-size="8.5"
+      fill="#2C4A3E" font-weight="500" letter-spacing="0.14em"
+      font-family="'DM Sans',sans-serif">Q4</text>
+<text x="185" y="714" text-anchor="middle" font-size="11"
+      fill="#1A1A18" font-family="'DM Sans',sans-serif">Collected/used for art,</text>
+<text x="185" y="728" text-anchor="middle" font-size="11"
+      fill="#1A1A18" font-family="'DM Sans',sans-serif">culture, or entertainment?</text>
+<text x="185" y="746" text-anchor="middle" font-size="9"
+      fill="#888880" font-style="italic" font-family="'DM Sans',sans-serif">§III.B p.16–20 · meme coins, NFTs, in-game</text>
+
+<!-- Q5 -->
+<rect x="55" y="884" width="260" height="72" rx="3"
+      fill="white" stroke="#2C4A3E" stroke-width="2"/>
+<text x="185" y="900" text-anchor="middle" font-size="8.5"
+      fill="#2C4A3E" font-weight="500" letter-spacing="0.14em"
+      font-family="'DM Sans',sans-serif">Q5</text>
+<text x="185" y="914" text-anchor="middle" font-size="11"
+      fill="#1A1A18" font-family="'DM Sans',sans-serif">Performs a practical function?</text>
+<text x="185" y="928" text-anchor="middle" font-size="11"
+      fill="#1A1A18" font-family="'DM Sans',sans-serif">(ticket, credential, badge)</text>
+<text x="185" y="946" text-anchor="middle" font-size="9"
+      fill="#888880" font-style="italic" font-family="'DM Sans',sans-serif">§III.C p.20–21 · ENS, soul-bound IDs</text>
+
+<!-- ══════════════════════════════════════════════════════
+     SUB-QUESTION BOXES (240×72)
+══════════════════════════════════════════════════════ -->
+
+<!-- Q3b -->
+<rect x="370" y="409" width="240" height="72" rx="3"
+      fill="#FDFCF8" stroke="#2C4A3E" stroke-width="1.5" stroke-dasharray="4 2"/>
+<text x="490" y="425" text-anchor="middle" font-size="8.5"
+      fill="#2C4A3E" font-weight="500" letter-spacing="0.14em"
+      font-family="'DM Sans',sans-serif">Q3b · YIELD FILTER</text>
+<text x="490" y="439" text-anchor="middle" font-size="11"
+      fill="#1A1A18" font-family="'DM Sans',sans-serif">Also: passive yield or rights</text>
+<text x="490" y="453" text-anchor="middle" font-size="11"
+      fill="#1A1A18" font-family="'DM Sans',sans-serif">to future income / profits?</text>
+<text x="490" y="471" text-anchor="middle" font-size="9"
+      fill="#888880" font-style="italic" font-family="'DM Sans',sans-serif">§III.A p.14 (disqualifying characteristics)</text>
+
+<!-- Q4b -->
+<rect x="370" y="684" width="240" height="72" rx="3"
+      fill="#FDFCF8" stroke="#2C4A3E" stroke-width="1.5" stroke-dasharray="4 2"/>
+<text x="490" y="700" text-anchor="middle" font-size="8.5"
+      fill="#2C4A3E" font-weight="500" letter-spacing="0.14em"
+      font-family="'DM Sans',sans-serif">Q4b · FRACTIONALIZATION CHECK</text>
+<text x="490" y="714" text-anchor="middle" font-size="11"
+      fill="#1A1A18" font-family="'DM Sans',sans-serif">Fractionalized or fractional</text>
+<text x="490" y="728" text-anchor="middle" font-size="11"
+      fill="#1A1A18" font-family="'DM Sans',sans-serif">ownership in one collectible?</text>
+<text x="490" y="746" text-anchor="middle" font-size="9"
+      fill="#888880" font-style="italic" font-family="'DM Sans',sans-serif">§III.B p.19–20 · fn.66–67 (Howey analogy)</text>
+
+<!-- ══════════════════════════════════════════════════════
+     OUTCOME BOXES (right column, 200×52)
+══════════════════════════════════════════════════════ -->
+
+<!-- Digital Security (cy=90) -->
+<rect x="710" y="64" width="200" height="52" rx="3"
+      fill="#FDF3F3" stroke="#7A1818" stroke-width="2"/>
+<text x="810" y="81" text-anchor="middle"
+      font-family="'Cormorant Garamond',serif" font-size="14" font-weight="600"
+      fill="#7A1818">Digital Security</text>
+<text x="810" y="98" text-anchor="middle" font-size="9.5"
+      fill="#7A1818" font-weight="500" letter-spacing="0.08em"
+      font-family="'DM Sans',sans-serif">IS A SECURITY · §III.E</text>
+
+<!-- Stablecoin (cy=255) -->
+<rect x="710" y="229" width="200" height="52" rx="3"
+      fill="#F5F3FC" stroke="#3E2A72" stroke-width="2"/>
+<text x="810" y="246" text-anchor="middle"
+      font-family="'Cormorant Garamond',serif" font-size="14" font-weight="600"
+      fill="#3E2A72">Stablecoin</text>
+<text x="810" y="263" text-anchor="middle" font-size="9.5"
+      fill="#3E2A72" font-weight="500" letter-spacing="0.08em"
+      font-family="'DM Sans',sans-serif">3-TIER ANALYSIS · §III.D</text>
+
+<!-- Further Analysis (cy=350) -->
+<rect x="710" y="324" width="200" height="52" rx="3"
+      fill="#FDF8EC" stroke="#5A3F00" stroke-width="2"/>
+<text x="810" y="341" text-anchor="middle"
+      font-family="'Cormorant Garamond',serif" font-size="14" font-weight="600"
+      fill="#5A3F00">Further Analysis</text>
+<text x="810" y="358" text-anchor="middle" font-size="9.5"
+      fill="#5A3F00" font-weight="500" letter-spacing="0.08em"
+      font-family="'DM Sans',sans-serif">YIELD PRESENT · NOT A CLEAN COMMODITY</text>
+
+<!-- Digital Commodity (cy=540) -->
+<rect x="710" y="514" width="200" height="52" rx="3"
+      fill="#F1F8F4" stroke="#1C4535" stroke-width="2"/>
+<text x="810" y="531" text-anchor="middle"
+      font-family="'Cormorant Garamond',serif" font-size="14" font-weight="600"
+      fill="#1C4535">Digital Commodity</text>
+<text x="810" y="548" text-anchor="middle" font-size="9.5"
+      fill="#1C4535" font-weight="500" letter-spacing="0.08em"
+      font-family="'DM Sans',sans-serif">NOT A SECURITY · §III.A</text>
+
+<!-- May Be a Security (cy=630) -->
+<rect x="710" y="604" width="200" height="52" rx="3"
+      fill="#FDF3F3" stroke="#B03030" stroke-width="2"/>
+<text x="810" y="621" text-anchor="middle"
+      font-family="'Cormorant Garamond',serif" font-size="14" font-weight="600"
+      fill="#B03030">May Be a Security</text>
+<text x="810" y="638" text-anchor="middle" font-size="9.5"
+      fill="#B03030" font-weight="500" letter-spacing="0.08em"
+      font-family="'DM Sans',sans-serif">IC ANALYSIS REQUIRED · §III.B</text>
+
+<!-- Digital Collectible (cy=810) -->
+<rect x="710" y="784" width="200" height="52" rx="3"
+      fill="#FDF4EF" stroke="#6E3518" stroke-width="2"/>
+<text x="810" y="801" text-anchor="middle"
+      font-family="'Cormorant Garamond',serif" font-size="14" font-weight="600"
+      fill="#6E3518">Digital Collectible</text>
+<text x="810" y="818" text-anchor="middle" font-size="9.5"
+      fill="#6E3518" font-weight="500" letter-spacing="0.08em"
+      font-family="'DM Sans',sans-serif">NOT A SECURITY · §III.B</text>
+
+<!-- Digital Tool (cy=920) -->
+<rect x="710" y="894" width="200" height="52" rx="3"
+      fill="#F1F6FC" stroke="#183860" stroke-width="2"/>
+<text x="810" y="911" text-anchor="middle"
+      font-family="'Cormorant Garamond',serif" font-size="14" font-weight="600"
+      fill="#183860">Digital Tool</text>
+<text x="810" y="928" text-anchor="middle" font-size="9.5"
+      fill="#183860" font-weight="500" letter-spacing="0.08em"
+      font-family="'DM Sans',sans-serif">NOT A SECURITY · §III.C</text>
+
+<!-- ══════════════════════════════════════════════════════
+     HYBRID / UNCLEAR — bottom of spine (260×52)
+══════════════════════════════════════════════════════ -->
+<rect x="55" y="1049" width="260" height="52" rx="3"
+      fill="#F4F4F2" stroke="#383838" stroke-width="2"/>
+<text x="185" y="1069" text-anchor="middle"
+      font-family="'Cormorant Garamond',serif" font-size="14" font-weight="600"
+      fill="#383838">Hybrid / Unclear</text>
+<text x="185" y="1086" text-anchor="middle" font-size="9.5"
+      fill="#383838" font-weight="500" letter-spacing="0.08em"
+      font-family="'DM Sans',sans-serif">COUNSEL REQUIRED · p.13</text>
+
+<!-- ══════════════════════════════════════════════════════
+     LEGEND (bottom-right)
+══════════════════════════════════════════════════════ -->
+<rect x="630" y="1040" width="310" height="80" rx="3"
+      fill="white" stroke="#D8D6CE" stroke-width="1"/>
+<text x="645" y="1058" font-size="9" fill="#2C4A3E" font-weight="500"
+      letter-spacing="0.12em" font-family="'DM Sans',sans-serif">LEGEND</text>
+<line x1="645" y1="1068" x2="685" y2="1068"
+      stroke="#2C4A3E" stroke-width="1.5" marker-end="url(#ah-y)"/>
+<text x="690" y="1072" font-size="10" fill="#2C4A3E"
+      font-family="'DM Sans',sans-serif">Yes → outcome or sub-question</text>
+<line x1="645" y1="1090" x2="685" y2="1090"
+      stroke="#888880" stroke-width="1.5" marker-end="url(#ah-n)"/>
+<text x="690" y="1094" font-size="10" fill="#888880"
+      font-family="'DM Sans',sans-serif">No → continues down the path</text>
+<line x1="645" y1="1108" x2="685" y2="1108"
+      stroke="#2C4A3E" stroke-width="1.5" stroke-dasharray="3 2" marker-end="url(#ah-y)"/>
+<text x="690" y="1112" font-size="10" fill="#2C4A3E"
+      font-family="'DM Sans',sans-serif">Yes (dashed) → warning-path outcome</text>
+
+</svg>
+  </div><!-- /tree-wrap -->
+
+
+  <!-- ══════════════════════════════════════════════════
+       CLASSIFICATION GUIDE
+  ══════════════════════════════════════════════════ -->
+  <div class="guide-title">Classification guide</div>
+  <div class="guide-grid">
+
+    <div class="guide-card cat-sec">
+      <div class="gc-badge">Category V</div>
+      <div class="gc-name">Digital Security</div>
+      <div class="gc-verdict">Is a security</div>
+      <div class="gc-body">A financial instrument enumerated in the definition of "security" — stock, bond, note, equity interest — formatted as or represented by a crypto asset. A security is a security regardless of format or label. Debt-like tokens: additionally consider <em>Reves v. Ernst &amp; Young</em>, 494 U.S. 56 (1990). Full Securities Act and Exchange Act obligations apply.</div>
+      <div class="gc-cite">§III.E p.23–24</div>
+    </div>
+
+    <div class="guide-card cat-stab">
+      <div class="gc-badge">Category IV</div>
+      <div class="gc-name">Stablecoin</div>
+      <div class="gc-verdict">Three-tier analysis required</div>
+      <div class="gc-body"><strong>Tier 1 (Statutory):</strong> GENIUS Act permitted payment stablecoin — not a security by statute, effective upon implementing regulations. <strong>Tier 2 (Commission interpretation):</strong> Covered Stablecoin (fiat-backed, 1:1, no yield, fully reserved) — not a security, operative now. <strong>Tier 3:</strong> All others (crypto-collateralized, algorithmic, yield-bearing, DAO-governed) — may be a security depending on facts and circumstances.</div>
+      <div class="gc-cite">§III.D p.21–23 · GENIUS Act §§2(22), 4(a)(11), 17</div>
+    </div>
+
+    <div class="guide-card cat-furt">
+      <div class="gc-badge">Caution</div>
+      <div class="gc-name">Further Analysis Required</div>
+      <div class="gc-verdict">Digital commodity status compromised</div>
+      <div class="gc-body">A token with exercisable utility on a functional system that <em>also</em> generates passive yield or conveys rights to future income, profits, or assets of a business enterprise does not fit the digital commodity definition. The disqualifying language is exact: digital commodities "do not have intrinsic economic properties or rights, such as generating a passive yield or conveying rights to future income, profits, or assets." Further analysis under the investment contract and digital security frameworks required. Consult counsel.</div>
+      <div class="gc-cite">§III.A p.14</div>
+    </div>
+
+    <div class="guide-card cat-comm">
+      <div class="gc-badge">Category I</div>
+      <div class="gc-name">Digital Commodity</div>
+      <div class="gc-verdict">Not a security</div>
+      <div class="gc-body">A crypto asset <em>native</em> to a functional crypto system that derives its value from the programmatic operation of that system and supply and demand — not from essential managerial efforts of others. Must also lack passive yield and rights to future income. Examples named: BTC, ETH, SOL, ADA, XRP, AVAX, LINK, DOT, ALGO, DOGE, SHIB, HBAR, LTC, BCH, XLM, XTZ, APT. Strengthened by decentralization (no central party with operational/economic/voting control).</div>
+      <div class="gc-cite">§III.A p.14–16 · n.49–50, n.54</div>
+    </div>
+
+    <div class="guide-card cat-maysec">
+      <div class="gc-badge">Caution</div>
+      <div class="gc-name">May Be a Security</div>
+      <div class="gc-verdict">Investment contract analysis required</div>
+      <div class="gc-body">A fractionalized digital collectible, or one that enables fractional ownership of a single collectible, can constitute an investment contract. The <em>Howey</em> citrus grove analogy is direct: subdividing a single asset with centralized management converts what would otherwise be a simple sale into an investment contract. The underlying collectible remains a non-security; it is the fractionalized interest structure that requires securities analysis. Do not proceed without registered securities counsel.</div>
+      <div class="gc-cite">§III.B p.19–20 · fn.66–67</div>
+    </div>
+
+    <div class="guide-card cat-coll">
+      <div class="gc-badge">Category II</div>
+      <div class="gc-name">Digital Collectible</div>
+      <div class="gc-verdict">Not a security</div>
+      <div class="gc-body">A crypto asset designed to be collected/used for artistic, entertainment, social, or cultural purposes — artwork, music, videos, trading cards, memes, in-game items. Value is based on subject matter, popularity, or scarcity. Creator royalties on resale do not change the analysis. Meme coins are a sub-type; they can later become digital commodities if they develop functional utility. Fan Tokens have hybrid characteristics (could also be digital tools).</div>
+      <div class="gc-cite">§III.B p.16–20 · fn.57 (Fan Tokens)</div>
+    </div>
+
+    <div class="guide-card cat-tool">
+      <div class="gc-badge">Category III</div>
+      <div class="gc-name">Digital Tool</div>
+      <div class="gc-verdict">Not a security</div>
+      <div class="gc-body">A crypto asset performing a practical function — membership, ticket, credential, title instrument, identity badge — where value derives from functional utility, not expected profits from the developer's efforts. Often non-transferrable or soul-bound. Examples named: Ethereum Name Service domain names, NFT event tickets. Fan Tokens have hybrid characteristics and could fall here depending on facts.</div>
+      <div class="gc-cite">§III.C p.20–21</div>
+    </div>
+
+    <div class="guide-card cat-hyb">
+      <div class="gc-badge">Unclassified</div>
+      <div class="gc-name">Hybrid / Unclear</div>
+      <div class="gc-verdict">Counsel required — no default safe harbor</div>
+      <div class="gc-body">The release expressly acknowledges that some crypto assets may not fit any of the five categories and that others may have hybrid characteristics spanning multiple categories. There is no residual "not a security" safe harbor for unclassified tokens. The Howey test and the full statutory definition of "security" continue to apply. Fan Tokens are explicitly identified as one example of hybrid-category assets.</div>
+      <div class="gc-cite">p.13</div>
+    </div>
+
+  </div><!-- /guide-grid -->
+
+
+  <!-- ══════════════════════════════════════════════════
+       INVESTMENT CONTRACT OVERLAY
+  ══════════════════════════════════════════════════ -->
+  <div class="ic-box">
+    <div class="ic-title">Investment contract overlay — applies to all non-security categories</div>
+    <div class="ic-body">
+      Any non-security crypto asset can be offered and sold <em>subject to an investment contract</em> — which is a security — if the issuer induces an investment of money with representations or promises of essential managerial efforts from which purchasers would <em>reasonably</em> expect to profit. <strong>The token is not the security; the contract, transaction, or scheme is.</strong> §IV.A, p.24–27.
+      <br><br>
+      Secondary market transactions in a token remain securities transactions only for so long as purchasers would <em>reasonably expect</em> the issuer's representations or promises to remain connected to the token. This is an objective inquiry — not automatic for all secondary sales. The token separates from the investment contract upon: fulfillment of the issuer's promises; public abandonment; or a sufficiently long period of inaction. §IV.B, p.28–31.
     </div>
   </div>
+
 
   <div class="footer">
     <div>
       <a href="https://www.sec.gov/files/rules/interp/2026/33-11412.pdf" target="_blank">Release 33-11412 (PDF)</a> &nbsp;&middot;&nbsp;
       <a href="https://www.sec.gov/rules-regulations/2026/03/s7-2026-09" target="_blank">SEC docket S7-2026-09</a><br>
-      Not legal advice. Classification is fact-specific. Consult counsel before relying on this framework.
+      Not legal advice. Classification is fact-specific. Consult counsel.
     </div>
     <div>Irina Marinescu &nbsp;&middot;&nbsp; <a href="https://codeandcounsel.substack.com" target="_blank">Code &amp; Counsel</a></div>
   </div>
 
 </div><!-- /container -->
-
-<script>
-/* ─── Tree data ─────────────────────────────────────────────────────────────── */
-const TREE = {
-  q1: {
-    n: '1 of 6',
-    text: 'Is it an enumerated financial instrument within the statutory definition of &ldquo;security&rdquo; &mdash; such as stock, bond, note, equity interest, or similar instrument &mdash; that is formatted as or represented by a crypto asset?',
-    cite: '15 U.S.C. &sect;77b(a)(1) &middot; &sect;III.E p.23&ndash;24',
-    hint: 'Ask: does this token represent a traditional financial instrument recorded on a crypto network? Examples: tokenized equities, tokenized bonds, tokenized fund interests, tokenized structured products. Form and label are irrelevant &mdash; the analysis turns on economic reality. Note: the <em>Reves v. Ernst &amp; Young</em>, 494 U.S. 56 (1990) test applies separately to note-like instruments with characteristics of debt.',
-    yes: 'digital-security',
-    no: 'q2'
-  },
-  q2: {
-    n: '2 of 6',
-    text: 'Is the crypto asset designed to maintain a stable value relative to a reference asset &mdash; such as the U.S. dollar?',
-    cite: '&sect;III.D p.21&ndash;23; GENIUS Act &sect;&sect;2(22), 4(a)(11), 17',
-    hint: 'Examples: USDC, USDT, PYUSD, FDUSD (likely Tier 1 or Tier 2). DeFi-native stablecoins (GHO, USDS, DAI) also reach this branch but may qualify for neither safe harbor. The stability mechanism matters significantly: fiat-backed 1:1 structures differ from algorithmic, crypto-collateralized, and yield-bearing designs.',
-    yes: 'stablecoin',
-    no: 'q3'
-  },
-  q3: {
-    n: '3 of 6',
-    text: 'Is the token <em>native</em> to a <em>functional</em> crypto system, and does it have exercisable programmatic utility on that system &mdash; such as gas payment, consensus participation (staking), or governance?',
-    cite: '&sect;III.A p.14; n.49 (&ldquo;functional&rdquo; = system is live and usable per programmatic utility); n.1 (&ldquo;native&rdquo; = generated for use on a particular crypto system)',
-    hint: 'Two conditions must both be met: (1) the token must be <em>native</em> &mdash; generated for use on &mdash; a particular crypto system; and (2) that system must be <em>functional</em>: live and usable in accordance with its programmatic design. A token on a non-functional, not-yet-launched, or entirely abandoned system cannot be a digital commodity on this basis. If yes, proceed to Question 4 before concluding.',
-    yes: 'q3b',
-    no: 'q4'
-  },
-  q3b: {
-    n: '4 of 6',
-    text: 'Does the token <em>also</em> generate passive yield for holders, or convey rights to future income, profits, or assets of a business enterprise or other entity?',
-    cite: '&sect;III.A p.14 &mdash; digital commodities &ldquo;do not have intrinsic economic properties or rights, such as generating a passive yield or conveying rights to future income, profits, or assets of a business enterprise or other entity, promisor, or obligor&rdquo;',
-    hint: 'This is a disqualifying filter. Examples of potentially disqualifying features: protocol fee distributions flowing to token holders (whether currently activated or enabled by governance); embedded revenue-sharing or yield mechanics; accruing interest. A <em>latent but unactivated</em> fee switch &mdash; where governance <em>could</em> vote to redirect fees &mdash; is a watch item that materially complicates the analysis but may not be a current disqualifier. Activated yield is disqualifying for clean digital commodity status.',
-    yes: 'further-analysis',
-    no: 'digital-commodity'
-  },
-  q4: {
-    n: '4 of 6',
-    text: 'Is the crypto asset primarily designed to be collected or used for artistic, entertainment, social, or cultural purposes &mdash; such as artwork, music, trading cards, memes, in-game items, or internet culture references?',
-    cite: '&sect;III.B p.16&ndash;20',
-    hint: 'Includes NFT artwork, meme coins (value driven by cultural or social significance and community), in-game skins, badges, and rewards points. Value must be driven by subject matter, popularity, or scarcity &mdash; not by essential managerial efforts of a promoter. Creator royalties automatically paid on resale do not transform a digital collectible into a security.',
-    yes: 'q4b',
-    no: 'q5'
-  },
-  q4b: {
-    n: '5 of 6',
-    text: 'Is the crypto asset fractionalized &mdash; or does it enable individuals to acquire a fractional ownership interest in a single digital collectible?',
-    cite: '&sect;III.B p.19&ndash;20; fn.66&ndash;67 (Howey citrus grove analogy)',
-    hint: 'Subdivision of a single collectible into fractional interests &mdash; whether by the creator or a third party &mdash; can introduce the elements of pooled investment and centralized management that are hallmarks of an investment contract. The underlying collectible remains a digital collectible; it is the fractional interest structure that is potentially a security.',
-    yes: 'may-be-security',
-    no: 'digital-collectible'
-  },
-  q5: {
-    n: '5 of 6',
-    text: 'Does the crypto asset perform a practical function &mdash; such as a membership, ticket, credential, title instrument, or identity badge &mdash; where value derives from that functional utility rather than any expectation of profits from the developer&rsquo;s efforts?',
-    cite: '&sect;III.C p.20&ndash;21',
-    hint: 'Examples: Ethereum Name Service domain names, NFT event tickets, soul-bound professional credentials, on-chain access keys, identity badges. Often non-transferrable (&ldquo;soul-bound&rdquo;). The price at which it may be resold, if at all, is based on functional utility &mdash; not on the developer&rsquo;s essential managerial efforts. Developer activity facilitating network effects does not constitute essential managerial efforts under this category.',
-    yes: 'digital-tool',
-    no: 'hybrid'
-  }
-};
-
-const OUTCOMES = {
-  'digital-security': {
-    theme: 't-security',
-    badge: 'Category V',
-    title: 'Digital Security',
-    verdict: 'IS A SECURITY',
-    cite: '&sect;III.E p.23&ndash;24',
-    notes: [
-      'A financial instrument enumerated in the definition of &ldquo;security&rdquo; &mdash; stock, bond, note, equity interest, etc. &mdash; that is formatted as or represented by a crypto asset, with the record of ownership maintained in whole or in part on a crypto network.',
-      'Includes both (1) securities tokenized by or on behalf of the issuer of the underlying security; and (2) securities tokenized by third parties unaffiliated with the issuer, which may involve a separate security that derives its value from or is linked to the underlying.',
-      'A security is a security regardless of whether it is represented offchain or onchain. Format, label, and technical wrapper are irrelevant to the economic reality analysis.',
-      'Debt-like instruments: separately consider <em>Reves v. Ernst &amp; Young</em>, 494 U.S. 56 (1990), for tokens with characteristics of a note &mdash; including the family-resemblance test (context of offer, plan of distribution, reasonable expectations of the investing public, risk-reducing factors).',
-      'Digital securities may provide non-financial benefits (e.g., governance, access) similar to a digital commodity or tool without losing security status.',
-      'Full registration and disclosure obligations under the Securities Act and Exchange Act apply, or an available exemption from registration must be relied upon.'
-    ]
-  },
-  'stablecoin': {
-    theme: 't-stablecoin',
-    badge: 'Category IV',
-    title: 'Stablecoin',
-    verdict: 'THREE-TIER ANALYSIS REQUIRED',
-    cite: '&sect;III.D p.21&ndash;23; GENIUS Act &sect;&sect;2(22), 4(a)(11), 17',
-    stablecoin: true,
-    notes: [
-      'All crypto assets in the stablecoin category are designed to maintain stable value relative to a reference asset. Whether a specific stablecoin is a security depends on which tier it falls into.',
-      'Stablecoins other than Tier 1 and Tier 2 may meet the definition of &ldquo;security&rdquo; depending on facts and circumstances. Crypto-collateralized, algorithmic, yield-bearing, and DAO-governed stablecoins require independent analysis.'
-    ]
-  },
-  'further-analysis': {
-    theme: 't-further',
-    badge: 'Not a Clean Digital Commodity',
-    title: 'Further Analysis Required',
-    verdict: 'DIGITAL COMMODITY STATUS COMPROMISED BY YIELD / INCOME RIGHTS',
-    cite: '&sect;III.A p.14 (definition); &sect;III.E p.23 (digital security); &sect;IV.A p.24 (investment contract)',
-    notes: [
-      'A token with exercisable utility on a functional crypto system that <em>also</em> generates passive yield or conveys rights to future income, profits, or assets of a business enterprise does not satisfy the full definition of digital commodity.',
-      'Digital commodities, as defined in the release, specifically must lack &ldquo;intrinsic economic properties or rights, such as generating a passive yield or conveying rights to future income, profits, or assets of a business enterprise or other entity.&rdquo; This is an affirmative definitional requirement, not a secondary consideration.',
-      'Depending on the nature and source of the yield or income rights, the token may be a digital security (if it constitutes an investment contract or an enumerated security), or it may occupy a hybrid zone requiring deeper facts-and-circumstances analysis.',
-      'A latent but not-yet-activated fee switch is a watch item: if governance votes to activate revenue distribution to token holders, classification can change. Ongoing monitoring is required.',
-      'Examples requiring this analysis: vote-escrow models with active fee distribution (veCRV, veBAL); governance tokens in protocols with activated revenue sharing; tokens embedding interest accrual or yield mechanics. Consult counsel.'
-    ]
-  },
-  'digital-commodity': {
-    theme: 't-commodity',
-    badge: 'Category I',
-    title: 'Digital Commodity',
-    verdict: 'NOT A SECURITY',
-    cite: '&sect;III.A p.14&ndash;16; n.49 (&ldquo;functional&rdquo;); n.50 (&ldquo;decentralized&rdquo;); n.1 (&ldquo;native&rdquo;)',
-    notes: [
-      'A crypto asset <em>native</em> to a functional crypto system that derives its value from the programmatic operation of that system and supply and demand dynamics &mdash; not from the expectation of profits from essential managerial efforts of others.',
-      'Examples named in the release: BTC, ETH, SOL, ADA, XRP, AVAX, LINK, DOT, ALGO, DOGE, SHIB, HBAR, LTC, BCH, XLM, XTZ, APT.',
-      'Must lack intrinsic economic properties or rights such as generating passive yield or conveying rights to future income, profits, or assets of a business enterprise. These are <em>definitionally disqualifying</em> characteristics &mdash; see Question 4 above.',
-      'Classification is strengthened where the associated crypto system is decentralized: no person, entity, or group has operational, economic, or voting control (n.50). Decentralization is a strengthening factor, not a binary threshold for digital commodity status.',
-      'A functional crypto system does not have a &ldquo;central party&rdquo; &mdash; defined as a person, entity, or group with operational, economic, or voting control &mdash; overseeing participation or distributing rewards (n.54).',
-      'Non-security status of the token does not prevent the token from being offered subject to an investment contract. See investment contract overlay below.'
-    ]
-  },
-  'may-be-security': {
-    theme: 't-maysec',
-    badge: 'Fractionalized Collectible',
-    title: 'May Be a Security',
-    verdict: 'INVESTMENT CONTRACT ANALYSIS REQUIRED',
-    cite: '&sect;III.B p.19&ndash;20; fn.66&ndash;67',
-    notes: [
-      'The offer and sale of a digital collectible that is fractionalized, or that otherwise enables individuals to acquire a fractional ownership interest of a single digital collectible, could constitute the offer or sale of a security.',
-      'Fractionalization introduces potential pooled investment with centralized management &mdash; the structural hallmarks of an investment contract. The <em>Howey</em> citrus grove subdivision is directly analogous: selling the whole grove is a real estate transaction; subdividing it with centralized management is an investment contract.',
-      'The underlying collectible itself remains a digital collectible (not itself a security). It is the fractionalized interest structure &mdash; and the arrangements surrounding management and profit distribution &mdash; that requires investment contract analysis.',
-      'This analysis applies whether fractionalization is done by the original creator or by a third-party platform.',
-      'Consult counsel. Do not proceed with a fractionalized collectible offering without registered securities counsel.'
-    ]
-  },
-  'digital-collectible': {
-    theme: 't-collectible',
-    badge: 'Category II',
-    title: 'Digital Collectible',
-    verdict: 'NOT A SECURITY',
-    cite: '&sect;III.B p.16&ndash;20',
-    notes: [
-      'A crypto asset designed to be collected and/or used that represents or conveys rights to artwork, music, videos, trading cards, in-game items, or digital representations of internet memes, characters, current events, or trends.',
-      'Does not provide holders with legal rights or interests in or with respect to a business enterprise or other entity, promisor, or obligor. Value is based on subject matter, popularity, or scarcity &mdash; not on essential managerial efforts of the creator following creation.',
-      '<strong>Meme coins</strong> are a sub-type: acquired for artistic, entertainment, social, or cultural purposes; value driven by supply and demand and community engagement. A meme coin can later become a digital commodity if it becomes functional within an associated functional crypto system.',
-      'Creator royalties automatically transmitted on resale (typically a percentage of sale price) do not change a digital collectible into a security &mdash; the creator sets the royalty rate at creation; the holder has no rights in the creator&rsquo;s enterprise.',
-      'Digital collections (groups of collectibles sharing a theme) and series do not change the security analysis. Fan Tokens: the release notes these have hybrid characteristics and could also be classified as digital tools. fn.57.',
-      'Non-security status of the token does not prevent the token from being offered subject to an investment contract. See investment contract overlay below.'
-    ]
-  },
-  'digital-tool': {
-    theme: 't-tool',
-    badge: 'Category III',
-    title: 'Digital Tool',
-    verdict: 'NOT A SECURITY',
-    cite: '&sect;III.C p.20&ndash;21',
-    notes: [
-      'A crypto asset that performs a practical function &mdash; such as a membership, ticket, credential, title instrument, or identity badge &mdash; where value derives from functional utility rather than any expectation of profits from the developer&rsquo;s essential managerial efforts.',
-      'Often non-transferrable or &ldquo;soul-bound&rdquo; &mdash; designed for permanent association with a specific digital identity, representing aspects of identity that are not transferable (academic credentials, professional certifications, memberships, verifiable work history).',
-      'May be issued by a central party or autonomously through the programmatic functioning of a crypto system.',
-      'Examples named in the release: Ethereum Name Service domain names, CoinDesk Microcosms NFT Consensus Ticket.',
-      'Fan Tokens have hybrid characteristics and could be classified as digital tools or digital collectibles depending on facts. fn.57.',
-      'Developer activity facilitating network effects, including through use of the tool, does not constitute essential managerial efforts for purposes of this classification.'
-    ]
-  },
-  'hybrid': {
-    theme: 't-hybrid',
-    badge: 'Unclassified',
-    title: 'Hybrid or Outside Taxonomy',
-    verdict: 'COUNSEL REQUIRED &mdash; NO DEFAULT SAFE HARBOR',
-    cite: 'p.13 (&ldquo;there may be crypto assets that do not fall within any of these five categories, as well as crypto assets with hybrid characteristics that may fall within more than one category&rdquo;)',
-    notes: [
-      'The release acknowledges that some crypto assets may not fall within any of the five categories and that others may have hybrid characteristics spanning multiple categories.',
-      'Fan Tokens are specifically identified as having hybrid characteristics (could be digital collectibles or digital tools).',
-      'Tokens reaching this branch did not clearly exhibit: (1) enumerated security characteristics; (2) stable-value design; (3) native functional system utility; (4) primarily cultural/entertainment/collectible purpose; or (5) practical functional utility.',
-      'The release does not provide a default &ldquo;not a security&rdquo; safe harbor for tokens outside the five categories. The Howey test and the full statutory definition of &ldquo;security&rdquo; continue to apply.',
-      'Consult counsel. The release is an interpretive guide, not an exhaustive taxonomy &mdash; and this outcome signals that a full investment contract analysis is required under Howey before any offer or sale.'
-    ]
-  }
-};
-
-/* ─── State ─────────────────────────────────────────────────────────────────── */
-let path = [];
-
-/* ─── Entry point ────────────────────────────────────────────────────────────── */
-function startTree() {
-  document.getElementById('start-screen').style.display = 'none';
-  document.getElementById('tree').style.display = 'block';
-  showQuestion('q1');
-}
-
-/* ─── Show a question ────────────────────────────────────────────────────────── */
-function showQuestion(id) {
-  const q = TREE[id];
-  renderBreadcrumb();
-  document.getElementById('ic-overlay').style.display = 'none';
-
-  const el = document.getElementById('step-container');
-  el.innerHTML = '';
-  const card = document.createElement('div');
-  card.className = 'question-card';
-  card.innerHTML = `
-    <div class="q-num">Question ${q.n}</div>
-    <div class="q-text">${q.text}</div>
-    <div class="q-cite">${q.cite}</div>
-    <div class="q-hint">${q.hint}</div>
-    <div class="btn-row">
-      <button class="btn btn-yes" onclick="answer('${id}','yes')">Yes &rarr;</button>
-      <button class="btn btn-no"  onclick="answer('${id}','no')">No &rarr;</button>
-    </div>`;
-  el.appendChild(card);
-}
-
-/* ─── Record an answer ───────────────────────────────────────────────────────── */
-function answer(qid, ans) {
-  path.push({ qid, ans });
-  const next = TREE[qid][ans];
-  if (OUTCOMES[next]) showOutcome(next);
-  else showQuestion(next);
-}
-
-/* ─── Show an outcome ────────────────────────────────────────────────────────── */
-function showOutcome(id) {
-  const o = OUTCOMES[id];
-  renderBreadcrumb();
-
-  const notesHtml = o.notes.map(n => `<li>${n}</li>`).join('');
-
-  let scHtml = '';
-  if (o.stablecoin) {
-    scHtml = `
-    <div class="sc-grid">
-      <div class="sc-tier">
-        <div class="sc-tier-label">Tier 1 &middot; Statutory exclusion</div>
-        <div class="sc-tier-name">GENIUS Act Permitted<br>Payment Stablecoin</div>
-        <div class="sc-status green">Not a security &mdash; by statute</div>
-        <div class="sc-desc">Issued by a &ldquo;permitted payment stablecoin issuer&rdquo; under GENIUS Act &sect;2(23): subsidiary of an insured depository institution (approved under &sect;5), Federal QPSi, or State QPSi. Yield to holders is prohibited under &sect;4(a)(11). Effective on the earlier of 18 months after enactment (July 18, 2025) or 120 days after final implementing regulations. Foreign permitted stablecoin issuers registered with OCC generally qualify as Covered Stablecoins (fn.81).</div>
-      </div>
-      <div class="sc-tier">
-        <div class="sc-tier-label">Tier 2 &middot; Commission interpretation</div>
-        <div class="sc-tier-name">Covered Stablecoin<br>(Staff Stablecoin Statement)</div>
-        <div class="sc-status green">Not a security &mdash; Commission interpretation</div>
-        <div class="sc-desc">Fiat-backed, fully reserved 1:1, redeemable for a fixed USD amount on demand, no yield paid to holders. The Commission adopts the Staff Stablecoin Statement (Apr. 4, 2025) in this release (p.22&ndash;23): offer and sale of Covered Stablecoins does not involve offer or sale of securities. <em>This safe harbor is operative now</em>, independently of GENIUS Act effectiveness. Examples: USDC, USDT, PYUSD (structure-dependent &mdash; verify current terms).</div>
-      </div>
-      <div class="sc-tier">
-        <div class="sc-tier-label">Tier 3 &middot; Fact-specific</div>
-        <div class="sc-tier-name">Other Stablecoins</div>
-        <div class="sc-status amber">May be a security</div>
-        <div class="sc-desc">Crypto-collateralized, algorithmic, yield-bearing, and DAO-governed stablecoins (e.g., GHO, USDS, DAI) qualify for neither Tier 1 nor Tier 2. Classification depends on facts and circumstances. Yield-bearing wrappers (sUSDS, sDAI) do not qualify for the wrapping safe harbor (&sect;VI) because they offer a return. The release provides no specific interpretive guidance for this sub-category.</div>
-      </div>
-    </div>`;
-  }
-
-  const el = document.getElementById('step-container');
-  el.innerHTML = '';
-  const card = document.createElement('div');
-  card.className = `outcome-card ${o.theme}`;
-  card.innerHTML = `
-    <div class="o-badge">${o.badge}</div>
-    <div class="o-title">${o.title}</div>
-    <div class="o-verdict">${o.verdict}</div>
-    <div class="o-cite">${o.cite}</div>
-    ${scHtml}
-    <ul class="o-notes">${notesHtml}</ul>
-    <button class="btn-reset" onclick="reset()">&larr; Start over</button>`;
-  el.appendChild(card);
-
-  const nonSec = ['digital-commodity','digital-collectible','digital-tool','hybrid','further-analysis'];
-  if (nonSec.includes(id)) {
-    document.getElementById('ic-overlay').style.display = 'block';
-  }
-}
-
-/* ─── Breadcrumb ─────────────────────────────────────────────────────────────── */
-function renderBreadcrumb() {
-  const bc = document.getElementById('breadcrumb');
-  if (!path.length) { bc.innerHTML = ''; return; }
-  bc.innerHTML = path.map((p, i) =>
-    `${i > 0 ? '<span class="bc-arrow">&rarr;</span>' : ''}
-     <span class="bc-step">Q${TREE[p.qid].n.split(' ')[0]} <span class="bc-ans ${p.ans}">${p.ans.toUpperCase()}</span></span>`
-  ).join('');
-}
-
-/* ─── Reset ──────────────────────────────────────────────────────────────────── */
-function reset() {
-  path = [];
-  document.getElementById('breadcrumb').innerHTML = '';
-  document.getElementById('ic-overlay').style.display = 'none';
-  showQuestion('q1');
-}
-</script>
 </body>
 </html>
